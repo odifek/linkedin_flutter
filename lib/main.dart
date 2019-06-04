@@ -2,6 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:async';
+import 'dart:io';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -13,27 +18,75 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: MyHomePage(title: 'Flutter Linkedin Home Page'),
+      home: MyHomePage(title: 'Flutter Linkedin Home Page', storage: CounterStorage(),),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class CounterStorage {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
 
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+
+    return File("$path/counter.txt");
+  }
+
+  Future<int> readCounter() async {
+    try {
+      final file = await _localFile;
+
+      String contents = await file.readAsString();
+
+      return int.parse(contents);
+    } catch (e) {
+      print("Could not read file! $e");
+      return 0;
+    }
+  }
+
+  Future<File> writeCounter(int counter) async {
+    final file = await _localFile;
+
+    return file.writeAsString("$counter");
+  }
+
+}
+
+class MyHomePage extends StatefulWidget {
   final String title;
+
+  final CounterStorage storage;
+
+  MyHomePage({Key key, this.title, @required this.storage}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int _counter;
 
-  void _incrementCounter() {
+  @override
+  void initState() {
+    super.initState();
+    widget.storage.readCounter().then((int value) {
+      setState(() {
+        _counter = value;
+      });
+    });
+  }
+
+  Future<File> _incrementCounter() {
     setState(() {
       _counter++;
     });
+
+    return widget.storage.writeCounter(_counter);
   }
 
   @override
