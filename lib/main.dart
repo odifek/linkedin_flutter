@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:io';
 
+import 'package:http/http.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -20,6 +22,12 @@ class MyApp extends StatelessWidget {
       ),
       home: MyHomePage(title: 'Flutter Linkedin Home Page', storage: CounterStorage(),),
     );
+  }
+}
+
+class GetData {
+  Future<Response> fetchData(Client client) async {
+    return client.get("http://jsonplaceholder.typicode.com/photos");
   }
 }
 
